@@ -9,11 +9,10 @@
 #endif
 
 namespace {
+constexpr uint32_t kSerialBaudRate = 115200; // Native USB CDC; not the audio bitrate.
 #ifdef FOUR_MIC_RECORDER
-constexpr uint32_t kSerialBaudRate = 2000000;
-constexpr uint32_t kSampleRateHz = 16000;
+constexpr uint32_t kSampleRateHz = 32000;
 #else
-constexpr uint32_t kSerialBaudRate = 115200;
 constexpr uint32_t kSampleRateHz = 48000;
 #endif
 constexpr size_t kChunkSamples = 512;
@@ -21,7 +20,7 @@ constexpr float kArrayWidthMeters = 0.134f;   // lewo-prawo, między portami
 constexpr float kArrayHeightMeters = 0.140f;  // góra-dół, między portami
 
 // Przekątna A: top-left (LEFT) oraz bottom-right (RIGHT).
-constexpr int kDiagonalABclkPin = 46;
+constexpr int kDiagonalABclkPin = 11;
 constexpr int kDiagonalAWsPin = 10;
 constexpr int kDiagonalADataPin = 12;
 
@@ -33,7 +32,7 @@ constexpr uint32_t kMaxLocalizationSeconds = 300;
 
 Sph0645DualMicDriver::Config makeDiagonalAMicsConfig() {
   Sph0645DualMicDriver::Config config;
-  config.port = I2S_NUM_1;
+  config.port = I2S_NUM_0;
   config.bclkPin = kDiagonalABclkPin;
   config.wsPin = kDiagonalAWsPin;
   config.dataInPin = kDiagonalADataPin;
@@ -48,7 +47,7 @@ Sph0645DualMicDriver::Config makeDiagonalAMicsConfig() {
 
 Sph0645DualMicDriver::Config makeDiagonalBMicsConfig() {
   Sph0645DualMicDriver::Config config;
-  config.port = I2S_NUM_0;
+  config.port = I2S_NUM_1;
   config.bclkPin = kDiagonalBBclkPin;
   config.wsPin = kDiagonalBWsPin;
   config.dataInPin = kDiagonalBDataPin;
@@ -193,7 +192,14 @@ void readCommands() {
 }  // namespace
 
 void setup() {
+  // PCB: disable LED mux (GPIO8) and standalone D21 (GPIO9).
+  digitalWrite(8, HIGH);
+  pinMode(8, OUTPUT);
+  digitalWrite(9, LOW);
+  pinMode(9, OUTPUT);
+  Serial.setTxBufferSize(16384);
   Serial.begin(kSerialBaudRate);
+  Serial.setTxTimeoutMs(1000);
   delay(1000);
 
   Serial.println("OK READY use START <seconds>");

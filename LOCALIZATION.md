@@ -12,23 +12,27 @@ macierzy, a `90` stronę górnej pary mikrofonów.
 
 ## Dwa niezależne kontrolery I2S
 
-I2S1 i I2S0 pracują jako niezależne mastery. Nie należy łączyć ich linii BCLK
+I2S0 i I2S1 pracują jako niezależne mastery. Nie należy łączyć ich linii BCLK
 ani WS/LRCLK. Każdy kontroler obsługuje jedną przekątną prostokąta, dlatego
 algorytm nie musi korelować kanałów należących do różnych zegarów.
 
 | Para | Kontroler | BCLK | WS/LRCLK | DOUT |
 |---|---:|---:|---:|---:|
-| top-left + bottom-right | I2S1 | GPIO46 | GPIO10 | GPIO12 |
-| top-right + bottom-left | I2S0 | GPIO1 | GPIO42 | GPIO40 |
+| top-left + bottom-right (MK1 + MK3) | I2S0 | GPIO11 | GPIO10 | GPIO12 |
+| top-right + bottom-left (MK4 + MK2) | I2S1 | GPIO1 | GPIO42 | GPIO40 |
 
 Mapowanie slotów I2S:
 
 | Mikrofon | Kontroler | Slot | L/R / SEL |
 |---|---:|---:|---:|
-| top-left | I2S1 | LEFT | GND |
-| bottom-right | I2S1 | RIGHT | 3V3 |
-| top-right | I2S0 | LEFT | GND |
-| bottom-left | I2S0 | RIGHT | 3V3 |
+| top-left / MK1 | I2S0 | LEFT | GND |
+| bottom-right / MK3 | I2S0 | RIGHT | 3V3 |
+| top-right / MK4 | I2S1 | LEFT | GND |
+| bottom-left / MK2 | I2S1 | RIGHT | 3V3 |
+
+Nazwy narożników są logicznymi nazwami istniejącego algorytmu. Przed pomiarem
+kąta trzeba dopasować je oraz wymiary macierzy do faktycznego rozmieszczenia
+portów akustycznych PCB.
 
 ## Uruchomienie
 
@@ -50,22 +54,31 @@ serwisu.
 ## Diagnostyczne nagrywanie czterech mikrofonów
 
 Osobny profil `esp32-s3-recorder` wgrywa firmware przesyłający cztery kanały
-PCM16 przy 16 kHz i 2 Mb/s. Służy do sprawdzania mikrofonów oraz kalibracji;
+PCM16 przy 32 kHz przez natywny USB Serial/JTAG. Służy do sprawdzania mikrofonów oraz kalibracji;
 zastępuje na czas testu firmware lokalizacyjny.
 
 ```bash
-pio run -e esp32-s3-recorder -t upload --upload-port /dev/ttyACM0
+~/.platformio/penv/bin/pio run -e esp32-s3-recorder -t upload
 ```
 
 Odbiór i zapis czterech kanałów uruchamia się z katalogu głównego repozytorium:
 
 ```bash
-python3 pc_tools/serial_triangle_audio_capture.py \
-  --port /dev/ttyACM0 --baud 2000000 --sample-rate 16000 \
-  --layout square --request-seconds 30 --output-dir square_capture_test
+~/.platformio/penv/bin/python pc_tools/record_mics.py --seconds 10
 ```
 
-Powstają katalogi `top_left`, `top_right`, `bottom_left` i `bottom_right`.
+Skrypt sam wysyła `STOP`, następnie `START`, odbiera cztery kanały i zatrzymuje
+nagrywanie. Zamknij Serial Monitor i pozostałe skrypty korzystające z portu.
+W nowym katalogu `nagrania/<data_czas>/` powstają `MK1.wav`–`MK4.wav` oraz
+`mikrofony.wav` z kanałami w kolejności MK1, MK2, MK3, MK4.
+Skrypt sprawdza kolejność pakietów i bloków; błędy transmisji przerywają zapis.
+Wspólny numer bloku nie oznacza synchronizacji próbek pomiędzy dwoma
+niezależnymi zegarami I2S.
+
+Opcje: `--port /dev/ttyACM1`, `--seconds 30`, `--output nagrania/test_1`.
+Folder docelowy musi być nowy. Zależności PC: `pc_tools/requirements.txt`
+(`pyserial`; dostępny także w środowisku PlatformIO).
+
 Powrót do lokalizacji wymaga ponownego wgrania domyślnego środowiska:
 
 ```bash

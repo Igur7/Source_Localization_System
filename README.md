@@ -20,3 +20,18 @@ Projekt został opracowany w ramach działalności **AGH Drone Engineering**. Dz
 - **Układ:** dwa mikrofony na każdej przekątnej kwadratu
 - **Środowisko:** PlatformIO + Arduino framework
 - **Oprogramowanie:** C/C++
+
+## Nagrywanie z płytki PCB przez USB-C
+
+Z katalogu repozytorium:
+
+```bash
+~/.platformio/penv/bin/pio run -e esp32-s3-recorder -t upload
+~/.platformio/penv/bin/python pc_tools/record_mics.py --seconds 10
+```
+
+Zamknij Serial Monitor przed nagrywaniem. Pliki `MK1.wav`–`MK4.wav` i wspólny
+`mikrofony.wav` zapisują się w `nagrania/<data_czas>/` (32 kHz, PCM16).
+Skrypt sam uruchamia i zatrzymuje zbieranie dźwięku.
+
+Piny PCB oraz konfiguracja trybu lokalizacji są opisane w [LOCALIZATION.md](LOCALIZATION.md).

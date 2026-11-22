@@ -38,7 +38,19 @@ bool SquareMicStreamService::onStart() {
 
   if (!_diagonalAMics.begin() || !_diagonalBMics.begin() || !_transport.begin()) {
     onStop();
+    Serial.println("ERR microphone_init_failed");
     return false;
+  }
+
+  // Warm up both microphone pairs and discard the startup DMA backlog.
+  size_t countA = 0, countB = 0;
+  for (int i = 0; i < 32; ++i) {
+    if (!_diagonalAMics.read(_audio[0], _audio[3], _chunkSamples, countA) ||
+        !_diagonalBMics.read(_audio[1], _audio[2], _chunkSamples, countB)) {
+      onStop();
+      Serial.println("ERR microphone_warmup_failed");
+      return false;
+    }
   }
 
   _frameId = 0;
@@ -54,8 +66,9 @@ void SquareMicStreamService::onLoop() {
       _audio[1], _audio[2], _chunkSamples, diagonalBSamples);
 
   if (!diagonalAOk || !diagonalBOk ||
-      diagonalASamples == 0 || diagonalBSamples == 0) {
-    sleepMs(2);
+      diagonalASamples == 0 || diagonalASamples != diagonalBSamples) {
+    Serial.println("ERR microphone_read_failed");
+    requestStop();
     return;
   }
 
@@ -66,20 +79,22 @@ void SquareMicStreamService::onLoop() {
   const uint32_t frameId = _frameId++;
   const uint64_t timestampUs = static_cast<uint64_t>(esp_timer_get_time());
 
-  _transport.sendSyncedTaggedPcm16(
-      kTopLeftSourceId, frameId, _audio[0], sampleCount, _sampleRateHz, timestampUs);
-  _transport.sendSyncedTaggedPcm16(
-      kTopRightSourceId, frameId, _audio[1], sampleCount, _sampleRateHz, timestampUs);
-  _transport.sendSyncedTaggedPcm16(
-      kBottomLeftSourceId, frameId, _audio[2], sampleCount, _sampleRateHz, timestampUs);
-  _transport.sendSyncedTaggedPcm16(
-      kBottomRightSourceId, frameId, _audio[3], sampleCount, _sampleRateHz, timestampUs);
+  const uint8_t sourceIds[] = {
+      kTopLeftSourceId, kTopRightSourceId, kBottomLeftSourceId, kBottomRightSourceId};
+  for (size_t mic = 0; mic < 4; ++mic) {
+    if (!_transport.sendSyncedTaggedPcm16(
+            sourceIds[mic], frameId, _audio[mic], sampleCount, _sampleRateHz, timestampUs)) {
+      Serial.println("ERR usb_write_failed");
+      requestStop();
+      return;
+    }
+  }
 }
 
 void SquareMicStreamService::onStop() {
-  _transport.end();
   _diagonalBMics.end();
   _diagonalAMics.end();
+  _transport.end();
 
   for (size_t microphone = 0; microphone < 4; ++microphone) {
     free(_audio[microphone]);

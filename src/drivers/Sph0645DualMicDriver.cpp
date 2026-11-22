@@ -46,15 +46,18 @@ bool Sph0645DualMicDriver::begin() {
   i2sConfig.tx_desc_auto_clear = false;
   i2sConfig.fixed_mclk = 0;
   i2sConfig.mclk_multiple = I2S_MCLK_MULTIPLE_DEFAULT;
-  i2sConfig.bits_per_chan = I2S_BITS_PER_CHAN_DEFAULT;
+  i2sConfig.bits_per_chan = I2S_BITS_PER_CHAN_32BIT;
 
   esp_err_t err = i2s_driver_install(_config.port, &i2sConfig, 0, nullptr);
   if (err != ESP_OK) {
     end();
     return false;
   }
+  // Ensure end() also uninstalls the driver if pin configuration fails below.
+  _started = true;
 
   i2s_pin_config_t pinConfig = {};
+  pinConfig.mck_io_num = I2S_PIN_NO_CHANGE;
   pinConfig.bck_io_num = _config.bclkPin;
   pinConfig.ws_io_num = _config.wsPin;
   pinConfig.data_out_num = I2S_PIN_NO_CHANGE;
@@ -88,7 +91,7 @@ bool Sph0645DualMicDriver::read(int16_t* leftBuffer,
 
   size_t bytesRead = 0;
   const esp_err_t err = i2s_read(_config.port, _rawBuffer, bytesToRead, &bytesRead, pdMS_TO_TICKS(1000));
-  if (err != ESP_OK || bytesRead == 0) {
+  if (err != ESP_OK || bytesRead != bytesToRead) {
     return false;
   }
 
