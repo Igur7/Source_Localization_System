@@ -31,7 +31,7 @@ Z katalogu repozytorium:
 ```
 
 Zamknij Serial Monitor przed nagrywaniem. Pliki `MK1.wav`–`MK4.wav` i wspólny
-`mikrofony.wav` zapisują się w `nagrania/<data_czas>/` (32 kHz, PCM16).
+`mikrofony.wav` zapisują się w `nagrania/<data_czas>/` (16 kHz, PCM16).
 Skrypt sam uruchamia i zatrzymuje zbieranie dźwięku.
 
 Piny PCB oraz konfiguracja trybu lokalizacji są opisane w [LOCALIZATION.md](LOCALIZATION.md).

@@ -54,7 +54,7 @@ serwisu.
 ## Diagnostyczne nagrywanie czterech mikrofonów
 
 Osobny profil `esp32-s3-recorder` wgrywa firmware przesyłający cztery kanały
-PCM16 przy 32 kHz przez natywny USB Serial/JTAG. Służy do sprawdzania mikrofonów oraz kalibracji;
+PCM16 przy 16 kHz przez natywny USB Serial/JTAG. Służy do sprawdzania mikrofonów oraz kalibracji;
 zastępuje na czas testu firmware lokalizacyjny.
 
 ```bash

@@ -11,7 +11,7 @@
 namespace {
 constexpr uint32_t kSerialBaudRate = 115200; // Native USB CDC; not the audio bitrate.
 #ifdef FOUR_MIC_RECORDER
-constexpr uint32_t kSampleRateHz = 32000;
+constexpr uint32_t kSampleRateHz = 48000;
 #else
 constexpr uint32_t kSampleRateHz = 48000;
 #endif

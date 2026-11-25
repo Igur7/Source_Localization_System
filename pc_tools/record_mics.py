@@ -13,7 +13,7 @@ import wave
 
 import serial
 
-RATE = 32000
+RATE = 48000
 HEADER = struct.Struct('<IHHIIHBBIQ')
 MAGIC = struct.pack('<I', 0x314D4350)
 # Existing square layout: TL=MK1, TR=MK4, BL=MK2, BR=MK3.
