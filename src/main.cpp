@@ -1,6 +1,6 @@
 #include <Arduino.h>
-
 #include "drivers/Sph0645DualMicDriver.h"
+#include "drivers/MuxDriver.h"
 #ifdef FOUR_MIC_RECORDER
 #include "services/SquareMicStreamService.h"
 #include "transports/UartPcmTransport.h"
@@ -77,7 +77,7 @@ SquareSoundLocalizationService::Config makeLocalizationConfig() {
   config.speedOfSoundMetersPerSecond = 343.0f;
   config.minimumRms = 80.0f;
   config.minimumPairPeakRatio = 1.5f;
-  config.maximumResidualMeters = 0.03f;
+  config.maximumResidualMeters = 0.06f;
   config.smoothingWindow = 5;
   config.reportIntervalMs = 200;
   #ifdef MOTION_SCOUT_DETECTOR
@@ -97,6 +97,7 @@ SquareMicStreamService activeService(
 SquareSoundLocalizationService activeService(
     diagonalAMics, diagonalBMics, makeLocalizationConfig());
 #endif
+MuxDriver mux;
 String commandBuffer;
 uint32_t serviceStopAtMs = 0;
 
@@ -119,6 +120,7 @@ void stopLocalization(const char* reason) {
     activeService.stop();
   }
 
+  mux.disable();
   serviceStopAtMs = 0;
   Serial.print("OK STOP ");
   Serial.println(reason);
@@ -134,6 +136,7 @@ void startLocalization(uint32_t durationSeconds) {
     activeService.stop();
   }
 
+  mux.disable();
   Serial.print("OK START ");
   Serial.println(durationSeconds);
   Serial.flush();
@@ -192,9 +195,8 @@ void readCommands() {
 }  // namespace
 
 void setup() {
-  // PCB: disable LED mux (GPIO8) and standalone D21 (GPIO9).
-  digitalWrite(8, HIGH);
-  pinMode(8, OUTPUT);
+  mux.begin();
+  // Leave the standalone D21 LED off.
   digitalWrite(9, LOW);
   pinMode(9, OUTPUT);
   Serial.setTxBufferSize(16384);
@@ -216,6 +218,7 @@ void loop() {
 #ifndef FOUR_MIC_RECORDER
   float angleDegrees = 0.0f;
   if (activeService.takeLatestAngle(angleDegrees)) {
+    mux.showAngle(angleDegrees);
     Serial.print("ANGLE ");
     Serial.println(angleDegrees, 2);
   }

@@ -17,7 +17,7 @@ public:
     float speedOfSoundMetersPerSecond = 343.0f;
     float minimumRms = 80.0f;
     float minimumPairPeakRatio = 1.5f;
-    float maximumResidualMeters = 0.03f;
+    float maximumResidualMeters = 0.06f;
     size_t smoothingWindow = 5;
     uint32_t reportIntervalMs = 200;
     bool motionScoutDetectionEnabled = false;
