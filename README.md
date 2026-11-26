@@ -1,22 +1,31 @@
-# Source Localization System — lokalizacja kierunku źródła dźwięku
 
-System lokalizacji kierunku nadejścia dźwięku (**DOA, Direction of Arrival**) oparty na **ESP32-S3** i czterech cyfrowych mikrofonach MEMS **SPH0645LM4H**. Firmware napisany w **C/C++** przetwarza sygnały bezpośrednio na mikrokontrolerze i wyznacza kąt źródła dźwięku w zakresie **0–360°**.
+# Source Localization System — Direction of Arrival Estimation
 
-Projekt został opracowany w ramach działalności **AGH Drone Engineering**. Działająca wersja prototypowa wykorzystuje cztery mikrofony rozmieszczone w narożnikach kwadratu. Osobno rozwijana jest [czterowarstwowa płytka PCB](https://github.com/Igur7/AngleCircle) do integracji systemu.
+An embedded Direction of Arrival (DOA) estimation system based on the ESP32-S3 microcontroller and four SPH0645LM4H digital MEMS microphones. The firmware, written in C/C++, processes acoustic signals directly on the microcontroller and estimates the direction of the sound source within a 0–360° range.
 
-## Najważniejsze funkcje
+The project was developed as part of **AGH Drone Engineering**. The system uses four microphones arranged at the corners of a square. A custom four-layer PCB, developed specifically for this application, has been designed, assembled and successfully brought up.
 
-- Równoczesny odczyt dwóch par mikrofonów za pomocą **dwóch niezależnych kontrolerów I²S** w ESP32-S3.
-- Wyznaczanie opóźnienia dotarcia dźwięku (**TDOA**) z użyciem **GCC-PHAT** dla każdej zsynchronizowanej pary.
-- Oszacowanie kierunku na podstawie geometrii układu i modelu propagacji fali dźwiękowej.
-- Filtrowanie niepewnych pomiarów i kołowe uśrednianie kolejnych kątów.
-- Sterowanie przez port szeregowy oraz przesyłanie wyników w formacie `ANGLE <kąt>`.
-- Oddzielny tryb diagnostyczny do odczytu surowych próbek z czterech mikrofonów.
+## Key Features
 
-## Sprzęt i architektura
+- Simultaneous acquisition of two microphone pairs using two independent I²S controllers available on the ESP32-S3.
+- Time Difference of Arrival (TDOA) estimation using the Generalized Cross-Correlation with Phase Transform (GCC-PHAT) algorithm for each synchronized microphone pair.
+- Direction of Arrival (DOA) estimation based on microphone array geometry and an acoustic wave propagation model.
+- Rejection of unreliable measurements and circular averaging of consecutive angle estimates.
+- Serial communication for system control and transmission of estimated angles in the `ANGLE <angle>` format.
+- Dedicated diagnostic mode for acquiring raw audio samples from all four microphones.
 
-- **Mikrokontroler:** ESP32-S3
-- **Mikrofony:** 4 × SPH0645LM4H, cyfrowy interfejs I²S
-- **Układ:** dwa mikrofony na każdej przekątnej kwadratu
-- **Środowisko:** PlatformIO + Arduino framework
-- **Oprogramowanie:** C/C++
+## Hardware and Software Architecture
+
+- **Microcontroller:** ESP32-S3
+- **Microphones:** 4 × SPH0645LM4H digital MEMS microphones
+- **Communication interface:** I²S
+- **Microphone arrangement:** Two microphone pairs positioned along the diagonals of a square
+- **Development environment:** PlatformIO
+- **Framework:** Arduino
+- **Programming languages:** C/C++
+- **Signal processing:** GCC-PHAT, TDOA and DOA estimation
+- **Hardware platform:** Custom four-layer PCB
+
+## Project Status
+
+The sound source localization prototype has been developed and tested. The custom PCB has been manufactured, assembled and successfully brought up, integrating the microcontroller, microphone array and supporting electronics into a single hardware module.
