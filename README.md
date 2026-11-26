@@ -1,37 +1,44 @@
-# Source Localization System — lokalizacja kierunku źródła dźwięku
 
-System lokalizacji kierunku nadejścia dźwięku (**DOA, Direction of Arrival**) oparty na **ESP32-S3** i czterech cyfrowych mikrofonach MEMS **SPH0645LM4H**. Firmware napisany w **C/C++** przetwarza sygnały bezpośrednio na mikrokontrolerze i wyznacza kąt źródła dźwięku w zakresie **0–360°**.
+# Source Localization System — Direction of Arrival Estimation
 
-Projekt został opracowany w ramach działalności **AGH Drone Engineering**. Działająca wersja prototypowa wykorzystuje cztery mikrofony rozmieszczone w narożnikach kwadratu. Osobno rozwijana jest [czterowarstwowa płytka PCB](https://github.com/Igur7/AngleCircle) do integracji systemu.
+An embedded Direction of Arrival (DOA) estimation system based on the ESP32-S3 microcontroller and four SPH0645LM4H digital MEMS microphones. The firmware, written in C/C++, processes acoustic signals directly on the microcontroller and estimates the direction of the sound source within a 0–360° range.
 
-## Najważniejsze funkcje
+The project was developed as part of **AGH Drone Engineering**. The system uses four microphones arranged at the corners of a square. A custom four-layer PCB has been designed, manufactured, assembled and successfully brought up to integrate the system into a single hardware module.
 
-- Równoczesny odczyt dwóch par mikrofonów za pomocą **dwóch niezależnych kontrolerów I²S** w ESP32-S3.
-- Wyznaczanie opóźnienia dotarcia dźwięku (**TDOA**) z użyciem **GCC-PHAT** dla każdej zsynchronizowanej pary.
-- Oszacowanie kierunku na podstawie geometrii układu i modelu propagacji fali dźwiękowej.
-- Filtrowanie niepewnych pomiarów i kołowe uśrednianie kolejnych kątów.
-- Sterowanie przez port szeregowy oraz przesyłanie wyników w formacie `ANGLE <kąt>`.
-- Oddzielny tryb diagnostyczny do odczytu surowych próbek z czterech mikrofonów.
+## Key Features
 
-## Sprzęt i architektura
+- Simultaneous acquisition of two microphone pairs using two independent I²S controllers available on the ESP32-S3.
+- Time Difference of Arrival (TDOA) estimation using the Generalized Cross-Correlation with Phase Transform (GCC-PHAT) algorithm for each synchronized microphone pair.
+- Direction of Arrival (DOA) estimation based on microphone array geometry and an acoustic wave propagation model.
+- Rejection of unreliable measurements and circular averaging of consecutive angle estimates.
+- Serial communication for system control and transmission of estimated angles in the `ANGLE <angle>` format.
+- Dedicated diagnostic mode for acquiring raw audio samples from all four microphones.
 
-- **Mikrokontroler:** ESP32-S3
-- **Mikrofony:** 4 × SPH0645LM4H, cyfrowy interfejs I²S
-- **Układ:** dwa mikrofony na każdej przekątnej kwadratu
-- **Środowisko:** PlatformIO + Arduino framework
-- **Oprogramowanie:** C/C++
+## Hardware and Software Architecture
 
-## Nagrywanie z płytki PCB przez USB-C
+- **Microcontroller:** ESP32-S3
+- **Microphones:** 4 × SPH0645LM4H digital MEMS microphones with an I²S interface
+- **Microphone arrangement:** Two microphones along each diagonal of a square
+- **Development environment:** PlatformIO
+- **Framework:** Arduino
+- **Programming languages:** C/C++
+- **Hardware platform:** Custom four-layer PCB
 
-Z katalogu repozytorium:
+## Audio Recording from the PCB via USB-C
+
+Run the following commands from the repository root directory:
 
 ```bash
 ~/.platformio/penv/bin/pio run -e esp32-s3-recorder -t upload
 ~/.platformio/penv/bin/python pc_tools/record_mics.py --seconds 10
 ```
 
-Zamknij Serial Monitor przed nagrywaniem. Pliki `MK1.wav`–`MK4.wav` i wspólny
-`mikrofony.wav` zapisują się w `nagrania/<data_czas>/` (16 kHz, PCM16).
-Skrypt sam uruchamia i zatrzymuje zbieranie dźwięku.
+Close the Serial Monitor before starting the recording.
 
-Piny PCB oraz konfiguracja trybu lokalizacji są opisane w [LOCALIZATION.md](LOCALIZATION.md).
+Individual microphone recordings (`MK1.wav`–`MK4.wav`) and a combined recording (`mikrofony.wav`) are saved in the `nagrania/<timestamp>/` directory.
+
+Audio recordings use a sampling rate of **16 kHz** and **16-bit PCM** encoding.
+
+The Python script automatically starts and stops audio acquisition.
+
+PCB pin assignments and localization mode configuration are documented in [LOCALIZATION.md](LOCALIZATION.md).
